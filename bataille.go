@@ -16,7 +16,7 @@ import (
 )
 
 var BOARD = makeBoard()
-var LIFE = 0
+var LIFE = 16
 var TAB_LETTERS = [10]string{"A","B","C","D","E","F","G", "H","I","J"}
 type battleShipBoard struct {
 	Board [10][10]boardState
@@ -299,20 +299,23 @@ func BoardHandler(w http.ResponseWriter, r *http.Request) {
 
 // GET /boats
 func BoatsHandler(w http.ResponseWriter, r *http.Request) {
+	left := LIFE
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "Hello, there\nOnly GET method is allowed")
 	} else {
+		touched := 0
 		for i := 0; i < 10; i++ {
 			for j := 0; j < 10; j++ {
-				if BOARD.Board[i][j] == 1 {
-					LIFE++
+				if BOARD.Board[i][j] == 2 {
+					touched++
 				}
 			}
 		}
-		if LIFE == 16 {
-			fmt.Fprintln(w, " Votre nombre de vies est de ",LIFE)
+		left = left - touched
+		if left == 16 {
+			fmt.Fprintln(w, " Votre nombre de vies est de ",left)
 		}else{
-		fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vies \n il vous en reste ",LIFE)
+		fmt.Fprintln(w, "Vous avez perdu ", LIFE-left, "de vies \n il vous en reste ",left)
 		}
 	}
 }
