@@ -20,7 +20,7 @@ import (
 )
 
 var BOARD = makeBoard()
-var LIFE = 0
+var LIFE = 16
 
 var TAB_LETTERS = [10]string{"A","B","C","D","E","F","G", "H","I","J"}
 
