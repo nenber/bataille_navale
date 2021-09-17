@@ -17,6 +17,7 @@ import (
 
 var BOARD = makeBoard()
 var LIFE = 0
+var TAB_LETTERS = [10]string{"A","B","C","D","E","F","G", "H","I","J"}
 type battleShipBoard struct {
 	Board [10][10]boardState
 }
@@ -285,9 +286,13 @@ func BoardHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "Hello, there\nOnly GET method is allowed")
 	} else {
+			fmt.Fprintf(w, "    0  1  2  3  4  5  6  7  8  9\n\n")
 			for i := 0; i < 10; i++ {
-				fmt.Println(BOARD.Board[i])
-				fmt.Fprintln(w, BOARD.Board[i])
+				fmt.Fprintf(w,TAB_LETTERS[i]+" ");
+				for j := 0; j < len(BOARD.Board[i]); j++ {
+					fmt.Fprintf(w,"  %v", BOARD.Board[i][j])
+				}	
+				fmt.Fprintf(w,"\n")
 			}
 	}
 }
