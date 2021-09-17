@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"math/rand"
@@ -25,23 +26,34 @@ const (
 func random(min int, max int) int {
 	return rand.Intn(max-min) + min
 }
-func runServer() {
+func runServer(port int) {
 	go http.HandleFunc("/hit", HitHandler)
 	go http.HandleFunc("/board", BoardHandler)
 	go http.HandleFunc("/boats", BoatsHandler)
-	// fmt.Println("Server started at port 4567")
-	log.Fatal(http.ListenAndServe(":4567", nil))
+	fmt.Println("Server started at port 4567")
+	addr := ":" + strconv.Itoa(port)
+	log.Fatal(http.ListenAndServe(addr, nil))
 
 }
 
 func main() {
-	go runServer()
+	port := flag.String("port", "default value", "Port of server")
+	flag.Parse()
+
+	number, err := strconv.ParseInt(*port, 10, 32)
+	if err != nil {
+		fmt.Println(err)
+	}
+	finalIntNum := int(number)
+	println(finalIntNum)
+
+	go runServer(finalIntNum)
 	rand.Seed(time.Now().UnixNano())
 
 	grid := [10][10]int{{}, {}}
 	fmt.Println(grid[0])
 	board := makeBoard()
-	for i := 0; i < 9; i++ {
+	for i := 0; i < 10; i++ {
 		fmt.Println(board.Board[i])
 	}
 
