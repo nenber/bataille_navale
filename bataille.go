@@ -305,9 +305,9 @@ func BoatsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if LIFE == 16 {
-			fmt.Fprintln(w, "Votre vie est pleine ",LIFE)
+			fmt.Fprintln(w, " Votre nombre de vies est de ",LIFE)
 		}else{
-		fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vie \n il vous en reste ",LIFE)
+		fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vies \n il vous en reste ",LIFE)
 		}
 	}
 }
