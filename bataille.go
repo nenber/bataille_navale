@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -10,7 +11,10 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
+
+	"net/url"
 	"strings"
 	"time"
 )
@@ -94,12 +98,62 @@ func main() {
 		fmt.Println(board.Board[i])
 	}
 
-	reader := bufio.NewReader(os.Stdin)
-	askOpponentTarget(reader)
+	opponents := askOpponentTarget()
+	play(opponents)
 
 }
+func play(opponents []string) {
+	for i := 0; ; i++ {
+		println("Quel joueur souhaite-tu attaquer ?")
+		for i := 0; i < len(opponents); i++ {
+			println("#", i+1, " (", opponents[i], ")")
+		}
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		result := scanner.Text()
+		if u, err := strconv.Atoi(result); err == nil {
+			if len(opponents) >= u {
+				println("Quel case ? (A-J:1-10)")
+				scanner := bufio.NewScanner(os.Stdin)
+				scanner.Scan()
+				target := strings.Split(scanner.Text(), ":")
+				if len(target) < 2 {
+					println("Format incorrect. Le format doit respecter \"A-J:1-10\"")
+				} else {
+					isAlpha := regexp.MustCompile(`^[A-za-z]+$`).MatchString(target[0])
+					if j, err := strconv.Atoi(target[1]); err == nil {
+						if j >= 1 && j <= 10 && isAlpha == true {
+							//on envoi la requete hit
+							data := url.Values{
+								"hit": {target[0] + ":" + target[1]},
+							}
+							addr := "http://" + opponents[u-1] + "/hit"
+							resp, err := http.PostForm(addr, data)
 
-func askOpponentTarget(reader *bufio.Reader) {
+							if err != nil {
+								log.Fatal(err)
+							}
+
+							var res map[string]interface{}
+
+							json.NewDecoder(resp.Body).Decode(&res)
+
+							fmt.Println(res["form"])
+						} else {
+							println("Cette case n'existe pas")
+						}
+					} else {
+						println("Cette case n'existe pas")
+					}
+				}
+			}
+		} else {
+			println("hey ce joueur n'existe pas, tape son id pour le selectionner !")
+		}
+	}
+}
+
+func askOpponentTarget() []string {
 	var opponentsAdrr []string
 
 	for i := 0; ; i++ {
@@ -140,12 +194,13 @@ func askOpponentTarget(reader *bufio.Reader) {
 
 			}
 		}
-
 	}
 	println("Voici les adresses de tes adversaires : ")
 	for i := 0; i < len(opponentsAdrr); i++ {
 		println("- ", opponentsAdrr[i])
 	}
+	return opponentsAdrr
+
 }
 
 func (b *battleShipBoard) Draw() string {
