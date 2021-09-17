@@ -16,6 +16,7 @@ import (
 )
 
 var BOARD = makeBoard()
+var LIFE = 0
 type battleShipBoard struct {
 	Board [10][10]boardState
 }
@@ -296,6 +297,17 @@ func BoatsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "Hello, there\nOnly GET method is allowed")
 	} else {
-		fmt.Fprintf(w, "How many boats")
+		for i := 0; i < 10; i++ {
+			for j := 0; j < 10; j++ {
+				if BOARD.Board[i][j] == 1 {
+					LIFE++
+				}
+			}
+		}
+		if LIFE == 16 {
+			fmt.Fprintln(w, "Votre vie est pleine ",LIFE)
+		}else{
+		fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vie \n il vous en reste ",LIFE)
+		}
 	}
 }
