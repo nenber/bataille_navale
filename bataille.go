@@ -15,6 +15,8 @@ import (
 	"time"
 )
 
+var BOARD = makeBoard()
+var LIFE = 0
 type battleShipBoard struct {
 	Board [10][10]boardState
 }
@@ -87,17 +89,18 @@ func main() {
 	go runServer(finalIntNum)
 	rand.Seed(time.Now().UnixNano())
 
-	grid := [10][10]int{{}, {}}
-	fmt.Println(grid[0])
-	board := makeBoard()
-	for i := 0; i < 10; i++ {
-		fmt.Println(board.Board[i])
-	}
+	// grid := [10][10]int{{}, {}}
+	// fmt.Println(grid[0])
+	// board := makeBoard()
+	// for i := 0; i < 10; i++ {
+	// 	fmt.Println(board.Board[i])
+	// }
 
 	reader := bufio.NewReader(os.Stdin)
 	askOpponentTarget(reader)
 
 }
+
 
 func askOpponentTarget(reader *bufio.Reader) {
 	var opponentsAdrr []string
@@ -282,9 +285,10 @@ func BoardHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "Hello, there\nOnly GET method is allowed")
 	} else {
-		board := [10][10]int{{}, {}}
-		fmt.Println(board)
-		fmt.Fprintf(w, "Board")
+			for i := 0; i < 10; i++ {
+				fmt.Println(BOARD.Board[i])
+				fmt.Fprintln(w, BOARD.Board[i])
+			}
 	}
 }
 
@@ -293,6 +297,17 @@ func BoatsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "Hello, there\nOnly GET method is allowed")
 	} else {
-		fmt.Fprintf(w, "How many boats")
+		for i := 0; i < 10; i++ {
+			for j := 0; j < 10; j++ {
+				if BOARD.Board[i][j] == 1 {
+					LIFE++
+				}
+			}
+		}
+		if LIFE == 16 {
+			fmt.Fprintln(w, " Votre nombre de vies est de ",LIFE)
+		}else{
+		fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vies \n il vous en reste ",LIFE)
+		}
 	}
 }
