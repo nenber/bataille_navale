@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -10,14 +11,19 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
+
+	"net/url"
 	"strings"
 	"time"
 )
 
 var BOARD = makeBoard()
 var LIFE = 0
+
 var TAB_LETTERS = [10]string{"A","B","C","D","E","F","G", "H","I","J"}
+
 type battleShipBoard struct {
 	Board [10][10]boardState
 }
@@ -97,13 +103,63 @@ func main() {
 	// 	fmt.Println(board.Board[i])
 	// }
 
-	reader := bufio.NewReader(os.Stdin)
-	askOpponentTarget(reader)
+	opponents := askOpponentTarget()
+	play(opponents)
 
 }
+func play(opponents []string) {
+	for i := 0; ; i++ {
+		println("Quel joueur souhaite-tu attaquer ?")
+		for i := 0; i < len(opponents); i++ {
+			println("#", i+1, " (", opponents[i], ")")
+		}
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		result := scanner.Text()
+		if u, err := strconv.Atoi(result); err == nil {
+			if len(opponents) >= u {
+				println("Quel case ? (A-J:1-10)")
+				scanner := bufio.NewScanner(os.Stdin)
+				scanner.Scan()
+				target := strings.Split(scanner.Text(), ":")
+				if len(target) < 2 {
+					println("Format incorrect. Le format doit respecter \"A-J:1-10\"")
+				} else {
+					isAlpha := regexp.MustCompile(`^[A-za-z]+$`).MatchString(target[0])
+					if j, err := strconv.Atoi(target[1]); err == nil {
+						if j >= 1 && j <= 10 && isAlpha == true {
+							//on envoi la requete hit
+							data := url.Values{
+								"hit": {target[0] + ":" + target[1]},
+							}
+							addr := "http://" + opponents[u-1] + "/hit"
+							resp, err := http.PostForm(addr, data)
 
+							if err != nil {
+								log.Fatal(err)
+							}
 
-func askOpponentTarget(reader *bufio.Reader) {
+							var res map[string]interface{}
+
+							json.NewDecoder(resp.Body).Decode(&res)
+
+							fmt.Println(res["form"])
+						} else {
+							println("Cette case n'existe pas")
+						}
+					} else {
+						println("Cette case n'existe pas")
+					}
+				}
+			}
+		} else {
+			println("hey ce joueur n'existe pas, tape son id pour le selectionner !")
+		}
+	}
+}
+
+func askOpponentTarget() []string {
+
 	var opponentsAdrr []string
 
 	for i := 0; ; i++ {
@@ -144,12 +200,13 @@ func askOpponentTarget(reader *bufio.Reader) {
 
 			}
 		}
-
 	}
 	println("Voici les adresses de tes adversaires : ")
 	for i := 0; i < len(opponentsAdrr); i++ {
 		println("- ", opponentsAdrr[i])
 	}
+	return opponentsAdrr
+
 }
 
 func (b *battleShipBoard) Draw() string {
@@ -299,20 +356,23 @@ func BoardHandler(w http.ResponseWriter, r *http.Request) {
 
 // GET /boats
 func BoatsHandler(w http.ResponseWriter, r *http.Request) {
+	left := LIFE
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "Hello, there\nOnly GET method is allowed")
 	} else {
+		touched := 0
 		for i := 0; i < 10; i++ {
 			for j := 0; j < 10; j++ {
-				if BOARD.Board[i][j] == 1 {
-					LIFE++
+				if BOARD.Board[i][j] == 2 {
+					touched++
 				}
 			}
 		}
-		if LIFE == 16 {
-			fmt.Fprintln(w, " Votre nombre de vies est de ",LIFE)
+		left = left - touched
+		if left == 16 {
+			fmt.Fprintln(w, " Votre nombre de vies est de ",left)
 		}else{
-		fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vies \n il vous en reste ",LIFE)
+		fmt.Fprintln(w, "Vous avez perdu ", LIFE-left, "de vies \n il vous en reste ",left)
 		}
 	}
 }
