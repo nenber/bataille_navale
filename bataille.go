@@ -157,6 +157,7 @@ func play(opponents []string) {
 }
 
 func askOpponentTarget() []string {
+
 	var opponentsAdrr []string
 
 	for i := 0; ; i++ {
@@ -340,10 +341,11 @@ func BoardHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
 		fmt.Fprintf(w, "Hello, there\nOnly GET method is allowed")
 	} else {
-		for i := 0; i < 10; i++ {
-			fmt.Println(BOARD.Board[i])
-			fmt.Fprintln(w, BOARD.Board[i])
-		}
+
+			for i := 0; i < 10; i++ {
+				fmt.Println(BOARD.Board[i])
+				fmt.Fprintln(w, BOARD.Board[i])
+			}
 	}
 }
 
@@ -360,9 +362,9 @@ func BoatsHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		if LIFE == 16 {
-			fmt.Fprintln(w, " Votre nombre de vies est de ", LIFE)
-		} else {
-			fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vies \n il vous en reste ", LIFE)
+			fmt.Fprintln(w, " Votre nombre de vies est de ",LIFE)
+		}else{
+		fmt.Fprintln(w, "Vous avez perdu ", 16-LIFE, "de vies \n il vous en reste ",LIFE)
 		}
 	}
 }
